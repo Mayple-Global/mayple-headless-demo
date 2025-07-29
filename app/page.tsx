@@ -3,7 +3,8 @@ import { cookies, headers } from "next/headers";
 const getCountry = async () => {
   const country = (await cookies()).get("shopify_country")?.value;
   const headersList = await headers();
-  console.log(headersList.get("X-Vercel-IP-Country-Region"));
+  console.log(headersList.get("shopify_country"));
+  console.log(headersList.get("x-vercel-ip-country"));
 
   return country;
 };
