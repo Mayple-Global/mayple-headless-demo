@@ -1,7 +1,5 @@
-"use client";
-
-// import { headers } from "next/headers";
-import { use } from "react";
+import CountrySelector from "./components/country-selector";
+// import { use, useState } from "react";
 
 const SHOPIFY_LOCALES_QUERY = `
   {
@@ -14,8 +12,12 @@ const SHOPIFY_LOCALES_QUERY = `
   }
 `;
 
-const getDefaultCountryCode = async () => {
-  return (await fetch("/api/geo")).text();
+const getStorefrontAccessToken = () => {
+  const accessToken = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN;
+  if (!accessToken) {
+    throw new Error("SHOPIFY_STOREFRONT_ACCESS_TOKEN is not set");
+  }
+  return accessToken;
 };
 
 const getShopifyLocales = async () => {
@@ -25,7 +27,7 @@ const getShopifyLocales = async () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-shopify-storefront-access-token": "dfe59ad59fafce550d29321bd0cf5c93",
+        "x-shopify-storefront-access-token": getStorefrontAccessToken(),
       },
       body: JSON.stringify({ query: SHOPIFY_LOCALES_QUERY }),
     }
@@ -33,34 +35,20 @@ const getShopifyLocales = async () => {
   return await response.json();
 };
 
-// const handleCountryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-//   console.log(event.target.value);
-// };
-
-export default function Home({}) {
-  const countries = use(getShopifyLocales());
-  const defaultCountryCode = use(getDefaultCountryCode());
-
+export default async function Page() {
+  const shopifyLocales = await getShopifyLocales();
+  console.log(shopifyLocales);
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <h1 className="text-4xl font-bold">Hello World</h1>
-        <p>Country: {JSON.stringify(countries)}</p>
-        <p>Default Country: {JSON.stringify(defaultCountryCode)}</p>
-        {/* <p>Locales: {JSON.stringify(defaultCountryCode)}</p> */}
-        {/* <select
-          className="border border-gray-300 rounded-md p-2"
-          defaultValue={defaultCountryCode}
-          onChange={handleCountryChange}
-        >
-          {locales.data.localization.availableCountries.map(
-            (country: { isoCode: string; name: string }) => (
-              <option key={country.isoCode} value={country.isoCode}>
-                {country.name}
-              </option>
-            )
-          )}
-        </select>  */}
+        <div>
+          <label htmlFor="country" className="text-sm font-medium block">
+            Country:
+          </label>
+          <CountrySelector
+            locales={shopifyLocales.data.localization.availableCountries}
+          />
+        </div>
       </main>
     </div>
   );
