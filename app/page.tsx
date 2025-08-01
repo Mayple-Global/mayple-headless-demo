@@ -28,6 +28,7 @@ const getShopifyLocales = async () => {
 };
 
 const getShopifyProduct = async (countryCode: string) => {
+  console.log(`countryCode: ${countryCode}`);
   const response = await fetch(
     "https://mayple-dev-store.myshopify.com/api/2025-07/graphql.json",
     {
