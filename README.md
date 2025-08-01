@@ -1,4 +1,4 @@
-## Building International for Shopify Headless in Nextjs
+## Building Internationalization for Shopify Headless in Nextjs
 
 [Shopify Guide](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/markets/)
 
