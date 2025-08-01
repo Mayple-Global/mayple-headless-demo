@@ -1,11 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  DEFAULT_COUNTRY_CODE,
-  SHOPIFY_COOKIE_NAME,
-} from "../helpers/constants";
+import { SHOPIFY_COOKIE_NAME } from "../helpers/constants";
 
 export default function CountrySelector({
   locales,
