@@ -1,12 +1,14 @@
 import CountrySelector from "./components/country-selector";
 import ShopifyProduct from "./components/shopify-product";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { DEFAULT_COUNTRY_CODE, SHOPIFY_COOKIE_NAME } from "./helpers/constants";
 import { getShopifyLocales, getShopifyProduct } from "./helpers/queryHelpers";
 
 export default async function Page() {
   const cookieStore = await cookies();
-  const countryCode = cookieStore.get(SHOPIFY_COOKIE_NAME)?.value;
+  const countryCode =
+    cookieStore.get(SHOPIFY_COOKIE_NAME)?.value ||
+    (await headers()).get("x-vercel-ip-country");
   const shopifyLocales = await getShopifyLocales();
   const shopifyProduct = await getShopifyProduct(
     countryCode || DEFAULT_COUNTRY_CODE
