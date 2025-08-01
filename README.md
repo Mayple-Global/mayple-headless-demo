@@ -28,8 +28,14 @@ Use the [shopLocales query](https://shopify.dev/docs/api/admin-graphql/latest/qu
 query {
   localization {
     availableCountries {
+      currency {
+        isoCode
+        name
+        symbol
+      }
       isoCode
       name
+      unitSystem
     }
   }
 }
