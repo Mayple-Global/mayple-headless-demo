@@ -12,7 +12,7 @@ export function middleware(request: NextRequest) {
     // For development, this will be undefined
     const country =
       request.headers.get("x-vercel-ip-country") || DEFAULT_COUNTRY;
-
+    console.log(`country: ${country}`);
     // Create response and set the country cookie
     const response = NextResponse.next();
     response.cookies.set("country-code", country, {
