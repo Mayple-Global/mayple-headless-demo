@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { DEFAULT_COUNTRY_CODE } from "../helpers/constants";
 
 export default function CountrySelector({
   locales,
@@ -24,7 +25,7 @@ export default function CountrySelector({
       return undefined;
     };
 
-    const countryCode = getCookie("country-code") || "US";
+    const countryCode = getCookie("country-code") || DEFAULT_COUNTRY_CODE;
     setSelectedCountry(countryCode);
   }, []);
 
@@ -45,11 +46,11 @@ export default function CountrySelector({
     locales.find((c) => c.isoCode === selectedCountry) || locales[0];
 
   return (
-    <div className="relative inline-block text-left">
+    <div className="relative inline-block text-left w-full">
       <div>
         <button
           type="button"
-          className="min-w-[200px] inline-flex w-full justify-between items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+          className="w-full inline-flex justify-between items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
           onClick={() => setIsOpen(!isOpen)}
           aria-expanded="true"
           aria-haspopup="true"
@@ -71,14 +72,14 @@ export default function CountrySelector({
       </div>
 
       {isOpen && (
-        <div className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+        <div className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none max-h-[200px] overflow-y-auto">
           <div className="py-1" role="menu" aria-orientation="vertical">
             {locales.map((country) => (
               <button
                 key={country.isoCode}
                 className={`flex items-center gap-3 px-4 py-2 text-sm w-full text-left hover:bg-gray-100 ${
                   selectedCountry === country.isoCode
-                    ? "bg-gray-50 font-medium"
+                    ? "bg-gray-50 font-medium text-black"
                     : "text-gray-700"
                 }`}
                 role="menuitem"

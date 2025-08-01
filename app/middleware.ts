@@ -16,7 +16,7 @@ export function middleware(request: NextRequest) {
     // Create response and set the country cookie
     const response = NextResponse.next();
     response.cookies.set("country-code", country, {
-      maxAge: 60 * 60 * 24 * 365, // 1 year
+      maxAge: 60 * 60 * 24 * 14, // 2 weeks
       httpOnly: false, // Allow client-side access
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
