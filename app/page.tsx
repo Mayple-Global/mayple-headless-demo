@@ -2,7 +2,7 @@ import CountrySelector from "./components/country-selector";
 import ShopifyProduct from "./components/shopify-product";
 import { cookies } from "next/headers";
 import { productById, availableCountries } from "./helpers/queries";
-import { DEFAULT_COUNTRY_CODE } from "./helpers/constants";
+import { DEFAULT_COUNTRY_CODE, SHOPIFY_COOKIE_NAME } from "./helpers/constants";
 import { headers } from "next/headers";
 
 const getStorefrontAccessToken = () => {
@@ -52,7 +52,7 @@ const getShopifyProduct = async (countryCode: string) => {
 
 export default async function Page() {
   const cookieStore = await cookies();
-  const countryCode = cookieStore.get("countryCode")?.value;
+  const countryCode = cookieStore.get(SHOPIFY_COOKIE_NAME)?.value;
   const shopifyLocales = await getShopifyLocales();
   const shopifyProduct = await getShopifyProduct(
     countryCode || DEFAULT_COUNTRY_CODE

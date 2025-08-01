@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { DEFAULT_COUNTRY_CODE } from "../helpers/constants";
+import {
+  DEFAULT_COUNTRY_CODE,
+  SHOPIFY_COOKIE_NAME,
+} from "../helpers/constants";
 
 export default function CountrySelector({
   locales,
@@ -25,15 +28,15 @@ export default function CountrySelector({
       return undefined;
     };
 
-    const countryCode = getCookie("country-code") || DEFAULT_COUNTRY_CODE;
+    const countryCode = getCookie(SHOPIFY_COOKIE_NAME) || DEFAULT_COUNTRY_CODE;
     setSelectedCountry(countryCode);
   }, []);
 
   const handleCountryChange = (countryCode: string) => {
     // Set cookie
-    document.cookie = `country-code=${countryCode}; path=/; max-age=${
+    document.cookie = `${SHOPIFY_COOKIE_NAME}=${countryCode}; max-age=${
       60 * 60 * 24 * 365
-    }; SameSite=Lax`;
+    }; SameSite=Lax;`;
 
     setSelectedCountry(countryCode);
     setIsOpen(false);

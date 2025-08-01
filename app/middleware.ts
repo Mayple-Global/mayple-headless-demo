@@ -1,21 +1,22 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { SHOPIFY_COOKIE_NAME } from "./helpers/constants";
 
 const DEFAULT_COUNTRY = "US";
 
 export function middleware(request: NextRequest) {
   // Check if user already has a country preference cookie
-  const existingCountry = request.cookies.get("country-code");
+  const existingCountry = request.cookies.get(SHOPIFY_COOKIE_NAME);
 
   if (!existingCountry) {
     // Get country from Vercel's geo headers (works in production)
     // For development, this will be undefined
     const country =
       request.headers.get("x-vercel-ip-country") || DEFAULT_COUNTRY;
-    console.log(`country: ${country}`);
+
     // Create response and set the country cookie
     const response = NextResponse.next();
-    response.cookies.set("country-code", country, {
+    response.cookies.set(SHOPIFY_COOKIE_NAME, country, {
       maxAge: 60 * 60 * 24 * 14, // 2 weeks
       httpOnly: false, // Allow client-side access
       secure: process.env.NODE_ENV === "production",
