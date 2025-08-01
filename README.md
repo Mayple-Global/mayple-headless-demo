@@ -1,5 +1,11 @@
 ## Building Internationalization for Shopify Headless in Nextjs
 
+### View the demo
+
+[Headless Shopify Nextjs Demo](https://mayple-headless-shop-demo.vercel.app/)
+
+#### Intro
+
 Dynamically displaying pricing in the native currency of a visiting user is critical for conversion on an international store.
 
 In headless Shopify sites, best practice is to automatically direct a user into the correct international experience based on their geolocation, and provide them the ability to change locations based on those available in the Shopify store.
