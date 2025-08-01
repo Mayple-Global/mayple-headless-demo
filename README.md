@@ -1,18 +1,22 @@
 ## Building Internationalization for Shopify Headless in Nextjs
 
-[Shopify Guide](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/markets/)
+Dynamically displaying pricing in the native currency of a visiting user is critical for conversion on an international store.
 
-- [International Pricing](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/markets/international-pricing)
+In headless Shopify sites, best practice is to automatically direct a user into the correct international experience based on their geolocation, and provide them the ability to change locations based on those available in the Shopify store.
+
+For even better conversion, provide a welcome mat popup on their first visit telling international customers that shipping is available to their country.
+
+#### Some helpful resources
+
+[Shopify's Headless Guide](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/markets/)
+
+- [Headless International Pricing](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/markets/international-pricing)
 
 [Vercel/Nextjs geolocation example](https://edge-functions-geolocation.vercel.sh/)
 
-Dynamically displaying pricing in the native currency of a visiting user is critical for conversion on an international site.
-
-In headless Shopify sites, best practice is to automatically direct a user into the correct international experience based on their geolocation, as well as provide them the ability to change locations based on those available in the Shopify store.
-
 ### Get a list of locations that are available on the site
 
-Use the [shopLocales query](https://shopify.dev/docs/api/admin-graphql/latest/queries/shoplocales?language=graphql) to get a list of available markets on the site. If the users current country exists in the list of shopLocales, set this as the customers country.
+Use the [shopLocales query](https://shopify.dev/docs/api/admin-graphql/latest/queries/shoplocales?language=graphql) to get a list of available markets on the site. If the user's current country exists in the list of shopLocales, we will customize the site for their locale.
 
 ```graphql
 query {
@@ -27,24 +31,23 @@ query {
 
 ### Direct customer to the correct experience
 
-You can use Nextjs Middleware to detect the country of origin for a visiting user. When a user visits the site, you should automatically save their visiting country in session storage an
+If you are using Vercel to host your site, use the header `x-vercel-ip-country` to detect the country of origin for a visiting user.
+
+When a user visits the site, you should automatically save their visiting country in a cookie and allow them to change that update that cookie. We recommend expiring the cookie after 2 weeks.
+
+Check out repo (page.tsx, components/country-selector.tsx) for a complete implementation.
 
 ```tsx
-// middleware.ts
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+// page.ts
+import { headers } from "next/headers";
 
-const DEFAULT_COUNTRY = "US";
+export default async function Page() {
+  const headersList = await headers();
+  const visitorsCountry = headersList.get("x-vercel-ip-country");
 
-export async function middleware(request: NextRequest) {
-  const country = request.headers.get("x-vercel-ip-country") || DEFAULT_COUNTRY;
-  const response = NextResponse.next();
-  response.headers.set("x-user-country", country);
-  return response;
-}
 ```
 
-This country location can then be passed into your routes:
+This header can also be used in your routes. Be aware, you cannot retrieve a user's country for content that is statically generated, this is because the page is precompiled.
 
 ```tsx
 // pages/index.ts
@@ -59,61 +62,55 @@ export async function getServerSideProps({ req }) {
 }
 ```
 
-or in app pages
+### Get localized Shopify data
 
-```tsx
-// app/index.ts
-const getDefaultCountryCode = async () => {
-  return (await fetch("/api/geo")).text();
-};
+Finally, add inContext directive to all your Shopify queries, Shopify will dynamically return the correct content based on these country filters.
 
-const getShopifyLocales = async () => {
-  const response = await fetch(
-    "https://[your-store-url].myshopify.com/api/2025-07/graphql.json",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-shopify-storefront-access-token":
-          "your-shopify-storefront-access-token",
-      },
-      body: JSON.stringify({ query: SHOPIFY_LOCALES_QUERY }),
+```gql
+query getProductById($id: ID!, $countryCode: CountryCode!)
+@inContext(country: $countryCode) {
+  product(id: $id) {
+    id
+    availableForSale
+    requiresSellingPlan
+    handle
+    productType
+    title
+    vendor
+    publishedAt
+    onlineStoreUrl
+    options {
+      name
+      values
     }
-  );
-  return await response.json();
-};
-
-export default function Page({}) {
-  const countries = use(getShopifyLocales());
-  const defaultCountryCode = use(getDefaultCountryCode());
-  const [country, setCountry] = useState<string>(defaultCountryCode);
-
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <div>
-          <label htmlFor="country" className="text-sm font-medium block">
-            Country:
-          </label>
-          <select
-            id="country"
-            className="border border-gray-300 rounded-md p-2"
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
-          >
-            {countries.data.localization.availableCountries.map(
-              (country: { isoCode: string; name: string }) => (
-                <option key={country.isoCode} value={country.isoCode}>
-                  {country.name}
-                </option>
-              )
-            )}
-          </select>
-        </div>
-      </main>
-    </div>
-  );
+    variants(first: 100) {
+      nodes {
+        id
+        title
+        weight
+        available: availableForSale
+        selectedOptions {
+          name
+          value
+        }
+        sku
+        price {
+          amount
+          currencyCode
+        }
+        compareAtPrice {
+          amount
+          currencyCode
+        }
+        image {
+          id
+          src: originalSrc
+          altText
+          width
+          height
+        }
+      }
+    }
+  }
 }
 ```
-
-Add inContext directive to all queries
