@@ -3,7 +3,6 @@ import ShopifyProduct from "./components/shopify-product";
 import { cookies } from "next/headers";
 import { productById, availableCountries } from "./helpers/queries";
 import { DEFAULT_COUNTRY_CODE, SHOPIFY_COOKIE_NAME } from "./helpers/constants";
-import { headers } from "next/headers";
 
 const getStorefrontAccessToken = () => {
   const accessToken = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN;
@@ -57,10 +56,6 @@ export default async function Page() {
   const shopifyProduct = await getShopifyProduct(
     countryCode || DEFAULT_COUNTRY_CODE
   );
-
-  const headersList = await headers();
-  const country = headersList.get("x-vercel-ip-country");
-  console.log(`country: ${country}, countryCode: ${countryCode}`);
 
   const variant = shopifyProduct.data.product.variants.nodes[0];
   return (

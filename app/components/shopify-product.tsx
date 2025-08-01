@@ -21,7 +21,7 @@ const ShopifyProduct = ({
         <h1 className="text-xl font-bold">{product.title}</h1>
         <p className="text-lg">
           {product.currencySymbol}
-          {product.price} {product.currencyCode}
+          {parseFloat(product.price).toFixed(2)} {product.currencyCode}
         </p>
       </div>
       <button className="bg-white text-black px-4 py-1 rounded-md">
