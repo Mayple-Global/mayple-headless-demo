@@ -60,7 +60,7 @@ export default async function Page() {
 
   const headersList = await headers();
   const country = headersList.get("x-vercel-ip-country");
-  console.log(`country: ${country}`);
+  console.log(`country: ${country}, countryCode: ${countryCode}`);
 
   const variant = shopifyProduct.data.product.variants.nodes[0];
   return (
