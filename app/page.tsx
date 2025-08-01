@@ -11,7 +11,6 @@ export default async function Page() {
   const shopifyProduct = await getShopifyProduct(
     countryCode || DEFAULT_COUNTRY_CODE
   );
-
   const variant = shopifyProduct.data.product.variants.nodes[0];
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
