@@ -1,36 +1,119 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Building International for Shopify Headless in Nextjs
 
-## Getting Started
+[Shopify Guide](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/markets/)
 
-First, run the development server:
+- [International Pricing](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/markets/international-pricing)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+[Vercel/Nextjs geolocation example](https://edge-functions-geolocation.vercel.sh/)
+
+Dynamically displaying pricing in the native currency of a visiting user is critical for conversion on an international site.
+
+In headless Shopify sites, best practice is to automatically direct a user into the correct international experience based on their geolocation, as well as provide them the ability to change locations based on those available in the Shopify store.
+
+### Get a list of locations that are available on the site
+
+Use the [shopLocales query](https://shopify.dev/docs/api/admin-graphql/latest/queries/shoplocales?language=graphql) to get a list of available markets on the site. If the users current country exists in the list of shopLocales, set this as the customers country.
+
+```graphql
+query {
+  localization {
+    availableCountries {
+      isoCode
+      name
+    }
+  }
+}
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Direct customer to the correct experience
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+You can use Nextjs Middleware to detect the country of origin for a visiting user. When a user visits the site, you should automatically save their visiting country in session storage an
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```tsx
+// middleware.ts
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-## Learn More
+const DEFAULT_COUNTRY = "US";
 
-To learn more about Next.js, take a look at the following resources:
+export async function middleware(request: NextRequest) {
+  const country = request.headers.get("x-vercel-ip-country") || DEFAULT_COUNTRY;
+  const response = NextResponse.next();
+  response.headers.set("x-user-country", country);
+  return response;
+}
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This country location can then be passed into your routes:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```tsx
+// pages/index.ts
+export async function getServerSideProps({ req }) {
+  const country = req.headers["x-user-country"] || "US";
 
-## Deploy on Vercel
+  return {
+    props: {
+      userCountry: country,
+    },
+  };
+}
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+or in app pages
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```tsx
+// app/index.ts
+const getDefaultCountryCode = async () => {
+  return (await fetch("/api/geo")).text();
+};
+
+const getShopifyLocales = async () => {
+  const response = await fetch(
+    "https://[your-store-url].myshopify.com/api/2025-07/graphql.json",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-shopify-storefront-access-token":
+          "your-shopify-storefront-access-token",
+      },
+      body: JSON.stringify({ query: SHOPIFY_LOCALES_QUERY }),
+    }
+  );
+  return await response.json();
+};
+
+export default function Page({}) {
+  const countries = use(getShopifyLocales());
+  const defaultCountryCode = use(getDefaultCountryCode());
+  const [country, setCountry] = useState<string>(defaultCountryCode);
+
+  return (
+    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
+      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
+        <div>
+          <label htmlFor="country" className="text-sm font-medium block">
+            Country:
+          </label>
+          <select
+            id="country"
+            className="border border-gray-300 rounded-md p-2"
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+          >
+            {countries.data.localization.availableCountries.map(
+              (country: { isoCode: string; name: string }) => (
+                <option key={country.isoCode} value={country.isoCode}>
+                  {country.name}
+                </option>
+              )
+            )}
+          </select>
+        </div>
+      </main>
+    </div>
+  );
+}
+```
+
+Add inContext directive to all queries
