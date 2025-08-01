@@ -9,28 +9,18 @@ import {
 
 export default function CountrySelector({
   locales,
+  currentCountryCode,
 }: {
   locales: {
     isoCode: string;
     name: string;
   }[];
+  currentCountryCode: string;
 }) {
-  const [selectedCountry, setSelectedCountry] = useState<string>("");
+  const [selectedCountry, setSelectedCountry] =
+    useState<string>(currentCountryCode);
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    // Get country from cookie on client side
-    const getCookie = (name: string) => {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop()?.split(";").shift();
-      return undefined;
-    };
-
-    const countryCode = getCookie(SHOPIFY_COOKIE_NAME) || DEFAULT_COUNTRY_CODE;
-    setSelectedCountry(countryCode);
-  }, []);
 
   const handleCountryChange = (countryCode: string) => {
     // Set cookie
